@@ -12,15 +12,7 @@ function getFile(win) {
 }
 
 function parseMarkdown(data, win) {
-  Promise.resolve(data)
-  .then(parser.fixNewLines)
-  .then(parser.removeComments)
-  .then(parser.parseHeaders)
-  .then(parser.parseHR)
-  .then(parser.parseLists)
-  .then(parser.parseLinks)
-  .then(parser.addStyles)
-  .then(parser.parseNewlines)
+  parser.parseMarkdown(data)
   .then((final) => {
     win.webContents.on('did-finish-load', () => {
       win.webContents.send('markdown', final)

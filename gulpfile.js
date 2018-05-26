@@ -9,8 +9,8 @@ gulp.task('sass', () => {
     .pipe(gulp.dest('./src/frame'))
 })
 
-gulp.task('sass:watch', () => {
+gulp.task('watch', () => {
   gulp.watch('./src/frame/*.scss', ['sass'])
 })
 
-gulp.task('default', ['sass', 'sass:watch'])
+gulp.task('default', ['sass', 'watch'])
