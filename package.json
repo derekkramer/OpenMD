@@ -11,6 +11,8 @@
   "author": "Derek Kramer",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^2.0.2"
+    "electron": "^2.0.2",
+    "gulp": "^3.9.1",
+    "gulp-sass": "^4.0.1"
   }
 }

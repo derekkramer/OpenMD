@@ -9,7 +9,7 @@ function removeComments(data) {
 
 function parseHeaders(data) {
   return data.replace(/\n(#+) (.*)( {2})*/g,
-  (match, p1, p2) => `<h${p1.length}>${p2}</h${p1.length}>`)
+  (match, p1, p2) => `<span class="h${p1.length}">${p2}</span>`)
 }
 
 function parseHR(data) {
