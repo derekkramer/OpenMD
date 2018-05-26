@@ -12,7 +12,8 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "^2.0.2",
-    "gulp": "^3.9.1",
-    "gulp-sass": "^4.0.1"
+    "gulp": "^4.0.0",
+    "gulp-sass": "^4.0.1",
+    "hoek": "^4.2.1"
   }
 }
