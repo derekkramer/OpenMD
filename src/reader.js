@@ -14,9 +14,9 @@ function getFile(win) {
 function parseMarkdown(data, win) {
   parser.parseMarkdown(data)
   .then((final) => {
-    win.webContents.on('did-finish-load', () => {
-      win.webContents.send('markdown', final)
-    })
+    console.log(final)
+    win.webContents.on('did-finish-load', () =>
+      win.webContents.send('markdown', final))
   })
 }
 

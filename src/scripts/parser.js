@@ -1,41 +1,44 @@
+const Regexer = require('./regexer')
+
 function fixNewLines(data) {
   return data.replace('\r\n', '\n')
 }
 
 function removeComments(data) {
-  return data.replace(/(?:<!--)(.|\n)*?(?:-->)/g, '')
+  return data.replace(Regexer.comment, '')
 }
 
 function parseHeaders(data) {
-  return data.replace(/(#+) (.*)( {2})*\n/g,
-    (match, p1, p2) =>
-      `<span class="h${p1.length}">${p2}</span>\n`)
+  return data.replace(Regexer.header,
+    (match, p1, p2) => `<span class="h${p1.length}">${p2}</span>\n`)
 }
 
 function parseHR(data) {
-  return data.replace(/(---(?:-?))\n/g, '<hr>')
+  return data.replace(Regexer.hr, '<hr>')
 }
 
-function parseBullets(data) {
+function parseLists(data) {
   return new Promise((resolve, reject) => {
     let lines = data.split('\n')
     let onBullets = false
+    let onNumbers = false
 
     for(let i = 0; i < lines.length; i++) {
-      if(lines[i].match(/^( *?)- (.+?)$/gm)) {
-        lines[i] = lines[i].replace(/^( *?)- (.+?)$/gm,
-          (match, p1, p2) =>
-            `<span style="padding-left: ${p1.length * 10}px">&bull;&nbsp;&nbsp;&nbsp;${p2}</span><br>`)
+      let bulletMatch = lines[i].match(Regexer.bullet)
+      let numberMatch = lines[i].match(Regexer.number)
 
-        if(!onBullets) {
-          lines[i] = '<p>' + lines[i]
-          onBullets = true
-        }
-
-        if(lines[i + 1] !== undefined && !lines[i + 1].match(/^( *?)- (.+?)$/gm)) {
-          lines[i] = lines[i].replace('<br>', '</p>')
-          onBullets = false
-        }
+      if(bulletMatch) {
+        [
+          lines[i],
+          onBullets,
+          onNumbers
+        ] = translateCode(onBullets, onNumbers, Regexer.bullet, Regexer.number, lines[i], lines[i + 1], bulletCode)
+      }else if(numberMatch) {
+        [
+          lines[i],
+          onNumbers,
+          onBullets
+        ] = translateCode(onBullets, onNumbers, Regexer.number, Regexer.bullet, lines[i], lines[i + 1], numberCode)
       }
 
       if(i === lines.length - 1) resolve(lines.join('\n'))
@@ -43,93 +46,56 @@ function parseBullets(data) {
   })
 }
 
-function parseNumbers(data) {
-  console.log(data);
-  const li = data.replace(/( *)(\d+)\. (.*)\n/gm,
-  (match, p1, p2, p3) => `<span data-number="${p2}" style="padding-left: ${p1.length * 10}px">${p2}.&nbsp;${p3}</span><br>`)
+function translateCode(primary, secondary, primaryRegex, secondaryRegex, original, next, replacement) {
+  original = original.replace(primaryRegex, replacement)
 
-  return li
+  let nextPrimaryMatch
+  let nextSecondaryMatch
+
+  if(next !== undefined) {
+    nextPrimaryMatch = next.match(primaryRegex)
+    nextSecondaryMatch = next.match(secondaryRegex)
+  }
+
+  if(!primary && !secondary) {
+    original = '<p>' + original
+    primary = true
+  }
+
+  if(next !== undefined && !nextPrimaryMatch && !nextSecondaryMatch) {
+    original = original.replace('<br>', '</p>')
+    primary = false
+    secondary = false
+  }
+
+  return [
+    original,
+    primary,
+    secondary
+  ]
 }
 
-function groupNumbers(data) {
-  return new Promise((resolve, reject) => {
-    let numbers = data.match(/<span data-number=(.*?)<\/span>/g)
-    let i = 0
-    let current = 1
-    let last = ''
-    let positions = []
-
-    numbers.forEach((number) => {
-      if(i === 0) {
-        positions.push(number)
-      } else {
-        let newNumber = +number.slice(19, 20)
-
-        if (newNumber < current) positions = [...positions, last, number]
-
-        current = newNumber
-        last = number
-      }
-
-      i++
-
-      if(i === numbers.length) {
-        positions.push(number)
-        resolve({
-          data,
-          positions
-        })
-      }
-    })
-  })
+function bulletCode(match, p1, p2, p3) {
+  return `<span style="padding-left: ${p1.length * 10}px">&bull;&nbsp;&nbsp;&nbsp;${p2}</span><br>`
 }
 
-function addNumbersTags(numberData) {
-  return new Promise((resolve, reject) => {
-    let { positions, data } = numberData
-
-    for(let i = 1; i <= positions.length; i++) {
-      let current = positions[i - 1]
-      let currentPosition = data.indexOf(current)
-      if(i % 2) {
-        data = data.substr(0, currentPosition) +
-          '<p>' +
-          data.substr(currentPosition)
-      } else {
-        data = data.substr(0, currentPosition + current.length) +
-          '</p>' +
-          data.substr(currentPosition + current.length + 4)
-      }
-
-      if(i === positions.length) {
-        resolve(data.replace(/data-number="\d"\s/g, ''))
-      }
-    }
-  })
-}
-
-function parseLists(data) {
-  return Promise.resolve(data)
-  .then(parseBullets)
-  // .then(groupBullets)
-  .then(parseNumbers)
-  .then(groupNumbers)
-  .then(addNumbersTags)
+function numberCode(match, p1, p2, p3) {
+  return `<span style="padding-left: ${p1.length * 10}px">${p2}.&nbsp;${p3}</span><br>`
 }
 
 function parseLinks(data) {
-  return data.replace(/\[(.*?)\]\((.*?)\)/g,
-  (match, p1, p2) => `<a href="${p2}">${p1}</a>`)
+  return data.replace(Regexer.link,
+    (match, p1, p2) => `<a href="${p2}">${p1}</a>`)
 }
 
 function bold(data) {
-  return data.replace(/\*\*([^*]+)\*\*/g,
-  (match, p1) => `<strong>${p1}</strong>`)
+  return data.replace(Regexer.bold,
+    (match, p1) => `<strong>${p1}</strong>`)
 }
 
 function italicize(data) {
-  return data.replace(/_([^_])+_/g,
-  (match, p1) => `<span style="font-style: italic">${p1}</span>`)
+  return data.replace(Regexer.italic,
+    (match, p1) => `<span style="font-style: italic">${p1}</span>`)
 }
 
 function addStyles(data) {
@@ -139,8 +105,7 @@ function addStyles(data) {
 }
 
 function addTrailingNewline(data) {
-  if (data.slice(-2) !== '\n') data += '\n'
-  return data
+  return data.slice(-2) === '\n' ? data : data + '\n'
 }
 
 function parseParagraphs(data) {
@@ -149,10 +114,8 @@ function parseParagraphs(data) {
     let i = 0
 
     data.forEach((line) => {
-      if(line.length) {
-        if(!containsTags(line)) {
-          data[i] = `<p>${data[i]}</p>`
-        }
+      if(line.length && !containsTags(line)) {
+        data[i] = `<p>${data[i]}</p>`
       }
 
       i++
@@ -163,14 +126,13 @@ function parseParagraphs(data) {
 }
 
 function containsTags(line) {
-  return line.match(/(?:<a.*?>)/g) ||
-    line.match(/(?:<span.*?>)/g) ||
-    line.match(/(?:<p>)/g) ||
-    line.match(/(?:<hr>)/g)
+  return line.match(Regexer.tags.span) ||
+    line.match(Regexer.tags.p) ||
+    line.match(Regexer.tags.hr)
 }
 
 function squashNewlines(data) {
-  return data.replace(/\n/g, '')
+  return data.replace(/(\n{3,})/g, '\n\n')
 }
 
 function parseMarkdown(data) {
