@@ -1,0 +1,16 @@
+{
+  "name": "OpenMD",
+  "version": "0.1.0",
+  "description": "An open-source viewer for markdown files",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Derek Kramer",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^2.0.2"
+  }
+}
