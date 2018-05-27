@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css?family=Paytone+One");
 body {
   margin: 0;
   padding: 0; }
@@ -7,6 +8,18 @@ main {
   font-size: 14px;
   line-height: 1.4;
   padding: 20px; }
+
+#copy {
+  visibility: hidden;
+  font-family: "Paytone One", "Segoe UI", "Source Sans Pro", Calibri, Candara, Arial, sans-serif;
+  font-size: 15vw;
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(180, 180, 180, 0.3);
+  color: rgba(100, 100, 100, 0.6); }
 
 .h1, .h2, .h3, .h4, .h5, .h6 {
   display: block;

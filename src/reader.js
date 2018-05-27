@@ -1,10 +1,11 @@
 const fs = require('fs')
 const parser = require('./scripts/parser')
+const {ipcMain} = require('electron')
 
 const path = './src/README.md'
 
-function getFile(win) {
-  fs.readFile(path, 'utf8', (err, data) => {
+function getFile(win, filepath) {
+  fs.readFile(filepath, 'utf8', (err, data) => {
     if (err) throw err
 
     parseMarkdown(data, win)
@@ -14,12 +15,10 @@ function getFile(win) {
 function parseMarkdown(data, win) {
   parser.parseMarkdown(data)
   .then((final) => {
-    console.log(final)
-    win.webContents.on('did-finish-load', () =>
-      win.webContents.send('markdown', final))
+    if(!win.webContents.isLoading()) win.webContents.send('markdown', final)
   })
 }
 
-module.exports = function(win) {
-  this.getFile = getFile(win)
+module.exports = {
+  getFile
 }

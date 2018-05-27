@@ -1,6 +1,7 @@
-const {app, BrowserWindow} = require('electron')
+const {app, BrowserWindow, ipcMain} = require('electron')
 
 let win
+const Reader = require('./src/reader')
 
 function createWindow () {
   win = new BrowserWindow({width: 800, height: 600})
@@ -9,7 +10,7 @@ function createWindow () {
 
   win.webContents.openDevTools()
 
-  require('./src/reader')(win)
+  ipcMain.on('openfile', (event, filepath) => Reader.getFile(win, filepath))
 
   win.on('closed', () => {
     win = null
