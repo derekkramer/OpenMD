@@ -48,3 +48,9 @@ main {
 .h6 {
   font-size: .67em;
   margin: 2.33em 0; }
+
+.code {
+  background-color: #aaaaaa;
+  border: 1px solid #444444;
+  font-family: 'Courier', 'Source Sans Pro', sans-serif;
+  padding: 5px; }

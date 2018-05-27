@@ -17,6 +17,13 @@ function parseHR(data) {
   return data.replace(Regexer.hr, '<hr>')
 }
 
+function parseCode(data) {
+  return data.replace(Regexer.code, (match, p1) => {
+    console.log(p1);
+    return `<div class="code">${p1}</div>`
+  })
+}
+
 function parseLists(data) {
   return new Promise((resolve, reject) => {
     let lines = data.split('\n')
@@ -141,6 +148,7 @@ function parseMarkdown(data) {
   .then(removeComments)
   .then(parseHeaders)
   .then(parseHR)
+  .then(parseCode)
   .then(parseLists)
   .then(parseLinks)
   .then(addStyles)
